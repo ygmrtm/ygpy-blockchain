@@ -1,0 +1,1 @@
+ps -fea | tr -s ' ' | grep flask | cut -f3 -d ' ' | xargs kill -5
