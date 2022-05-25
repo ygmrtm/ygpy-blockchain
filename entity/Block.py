@@ -22,6 +22,16 @@ class Block:
         | merkle_root:{self.merkle_root} | time:{self.time} | transactions:{len(self.transactions)} | bits:{self.bits} \
         | nonce:{self.nonce} '
 
+    @property
+    def difficulty(self):
+        i = 0
+        for ch in self.bits[2:]:
+            if ch == '0':
+                i += 1
+            else:
+                break
+        return i
+
     def compute_hash(self):
         """
         A function that return the hash of the block contents.

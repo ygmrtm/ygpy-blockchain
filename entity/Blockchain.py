@@ -7,6 +7,7 @@ try:
     # from entity.MerkleTree import MerkleTree
     from pymerkle import MerkleTree
     from entity.GeneticAlgorithm import Population
+    from entity.GeneticAlgorithm import Phenotype
 
 except ImportError as exc:
     print(exc)
@@ -69,41 +70,52 @@ class Blockchain:
         new_target = str(hex(new_target_int))
         return new_target[0:2] + '0' * (66 - len(new_target)) + new_target[2:]
 
-    def mine(self, with_ag=False):
+    def new_block(self):
         """
         This function serves as an interface to add the pending
         transactions to the blockchain by adding them to the block
         and figuring out Proof Of Work.
         """
-        if len(self.unconfirmed_transactions) <= 2:
-            print('No enough transactions to be mined')
-            return False
-
-        start_mine = time.time()
         print('Difficulty={}\n{}'.format(self.difficulty, self.current_target))
-        expected_time_per_block = 1 * 8 * 60  # (number of seconds expected between 2016 blocks) One Block
-        added = False
+
         last_block = self.last_block
         tree = MerkleTree()
         # Populate tree with some records
         for record in self.unconfirmed_transactions:
             tree.encrypt(record)
+
         new_block = Block(index=last_block.index + 1, version=self.version, previous_block=last_block.hash
                           , merkle_root=tree.get_root_hash().decode("utf-8"), time=time.time()
                           , transactions=self.unconfirmed_transactions, bits=self.current_target, nonce=0)
-        if not with_ag:
+        return new_block
+
+    def mine(self, expected_time_per_block):
+        block_proof = computed_hash = None
+        new_block = self.new_block()
+        if new_block:
             block_proof, computed_hash = self.proof_of_work(new_block, expected_time_per_block)
-            added = self.add_block(block_proof, computed_hash)
-        '''        else:
-                    pop = Population(population_size=500, target=self.current_target, original_block=new_block
-                                     , time_target=60, upper_range=10000000000)
-                    while not pop.evaluation_score():
-                        continue'''
-        if added:
-            self.unconfirmed_transactions = []
-        self.current_target = self.adjust_target(first=start_mine, last=time.time()
-                                                 , expected_time_per_block=expected_time_per_block)
-        return added
+        return block_proof, computed_hash
+
+    @staticmethod
+    def proof_of_work_alternate(block, phenotype):
+        print(f'>: proof_of_work_alternate {phenotype.up_down.upper()}'
+              f' range[{phenotype.lower if phenotype.up_down == "down" else phenotype.value} to '
+              f' {phenotype.value if phenotype.up_down == "down" else "INFINITE"}]')
+
+        block.nonce = phenotype.value if phenotype.up_down == 'down' else phenotype.lower
+        computed_hash = block.compute_hash()
+        out_of_range = False
+        while not ((computed_hash.startswith('0' * block.difficulty)
+                    and int(block.bits, 16) - int(computed_hash, 16) > 0)
+                   or out_of_range):
+            if phenotype.up_down == 'down':
+                block.nonce -= 1
+                out_of_range = block.nonce < phenotype.lower
+            else:
+                block.nonce += 1
+            computed_hash = block.compute_hash()
+
+        return block, computed_hash
 
     def proof_of_work(self, block, expected_time_per_block):
         """
@@ -119,7 +131,9 @@ class Blockchain:
             block.nonce += 1
             computed_hash = block.compute_hash()
             if block.nonce % 10000000 == 0:
-                print('nonce={} elap={} \n computed_hash={} '.format(block.nonce, time.time() - start, computed_hash))
+                print('nonce={} elapsed={} \n computed_hash={}... still far from get it'.format(block.nonce
+                                                                                                , time.time() - start,
+                                                                                                computed_hash))
 
         return block, computed_hash
 

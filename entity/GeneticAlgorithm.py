@@ -1,14 +1,10 @@
 import copy
 import os
 import random
-import time
 import sys
-from concurrent.futures import TimeoutError
-from concurrent.futures import wait, FIRST_COMPLETED, ALL_COMPLETED
-import multiprocessing
+import time
 
 from joblib import Parallel, delayed
-from pebble import ProcessPool
 
 
 class Phenotype:
@@ -94,23 +90,6 @@ class Population:
         self.population = Parallel(n_jobs=self.how_many_workers)(delayed(self.increase_gen)(ind) for ind in results)
         return self.stop()
 
-    def evaluation_score_pebble(self):
-        new_generation = []
-        with ProcessPool(max_workers=self.how_many_workers) as pool:
-            f1 = pool.schedule(self.evaluation, [self.population[0]])
-            f2 = pool.schedule(self.evaluation, [self.population[1]])
-            farray = [pool.schedule(self.evaluation, [self.population[0]]), pool.schedule(self.evaluation, [self.population[1]])]
-            try:
-                done, not_done = wait(farray, timeout=10, return_when=ALL_COMPLETED)
-                for x in done:
-                    print(x.result())
-                for f in not_done:
-                    print("canceling")
-                    f.cancel()
-            except TimeoutError:
-                print("TimeoutError: aborting remaining computations")
-        return self.stop()
-
     def evaluation(self, ind):
         if self.original_block:
             tmp_block = copy.deepcopy(self.original_block)
@@ -177,26 +156,3 @@ class Population:
             self.population.sort(key=lambda x: x.how_many_kids + x.how_many_gens, reverse=True)
 
         return stop
-try:
-    # Python 3.4+
-    if sys.platform.startswith('win'):
-        import multiprocessing.popen_spawn_win32 as forking
-    else:
-        import multiprocessing.popen_fork as forking
-except ImportError:
-    import multiprocessing.forking as forking
-
-
-def main(new_node, time_deadline):
-    multiprocessing.freeze_support()
-    pop = Population(population_size=500, target=new_node.bits
-                 , original_block=new_node, time_target=time_deadline, upper_range=100000000)
-
-    while not pop.evaluation_score_pebble():
-        continue
-
-
-
-if __name__ == '__main__':
-    multiprocessing.freeze_support()
-    main(sys.argv[1:])
