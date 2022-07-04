@@ -60,14 +60,16 @@ class Blockchain:
         ratio = actual / expected_time_per_block
 
         # 3. Limit the adjustment by a factor of 5 (to prevent massive changes from one target to the next)
-        ratio = 0.15 if ratio < 0.15 else 5 if ratio > 5 else ratio
+        ratio = 0.15 if ratio < 0.15 else 4 if ratio > 4 else ratio
         print(f'{actual} secs w {ratio} ratio')
-        print('adjusting target {} '.format('UP' if ratio < 1 else 'DOWN'))
+        print('adjusting target {}'.format('DOWN' if ratio < 1 else 'UP'))
 
         # 4. Multiply the current target by this ratio to get the new target
         current_target_int = int(self.current_target, 16)
         new_target_int = int(current_target_int * ratio)
         new_target = str(hex(new_target_int))
+        print('' * 16, 'FROM:', current_target_int)
+        print('' * 16, '  TO:', new_target_int)
         return new_target[0:2] + '0' * (66 - len(new_target)) + new_target[2:]
 
     def new_block(self):
@@ -130,7 +132,7 @@ class Blockchain:
                    or time.time() - start > (expected_time_per_block * 1.5)):
             block.nonce += 1
             computed_hash = block.compute_hash()
-            if block.nonce % 10000000 == 0:
+            if block.nonce % 1000000 == 0:
                 print('nonce={} elapsed={} \n computed_hash={}... still far from get it'.format(block.nonce
                                                                                                 , time.time() - start,
                                                                                                 computed_hash))

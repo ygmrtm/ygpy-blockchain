@@ -189,7 +189,7 @@ def hard_work():
     _computed_hash = ''
     new_block = main_chain.new_block()
     pop = Population(population_size=500, target=new_block.bits
-                     , original_block=new_block, time_target=expected_time_per_block / 10, upper_range=10000000)
+                     , original_block=new_block, time_target=expected_time_per_block / 10, upper_range=100000000)
     how_many = pop.how_many_workers
     print(f'Genetic Algorithm Running, waiting for {pop.time_target} secs')
     while not pop.evaluation_score():
@@ -241,9 +241,10 @@ def parallel_work(block, phenotype, _main_chain, time_to_sleep):
 if __name__ == "__main__":
     # upgrade_chain()
     multiprocessing.freeze_support()
-    limit_process_tasks = 20
+    limit_process_tasks = random.sample(range(10, 30), 1)[0]
     current_version = 4
-    expected_time_per_block = 1 * 8 * 60  # (number of seconds expected between 2016 blocks) One Block
+    expected_time_per_block = 1 * 10 * 60  # (number of seconds expected between 2016 blocks) One Block
+    min_transactions_to_mine = 3
 
     action, chain_hash, enable_ga = check_arguments(sys.argv[1:])
     chains = load_chains(action, chain_hash)
@@ -260,36 +261,40 @@ if __name__ == "__main__":
         # main_chain.current_target = '0x00000fffffffffffffffffffffffffffff000000000000000000000000000000'
         for trx in filtered:
             main_chain.add_new_transaction(trx.description)
-        if len(main_chain.unconfirmed_transactions) <= 2:
+        if len(main_chain.unconfirmed_transactions) < min_transactions_to_mine:
             print(f'- No enough transactions to be mined {main_chain.chain[0].hash}')
         else:
-            print(f'- There are {len(filtered)} pending transactions (for this chain:{main_chain.chain[0].hash})')
-            print(f'Mining for the following {expected_time_per_block} seconds')
-            start_mine = time.time()
-            if not enable_ga:
-                block_proof, computed_hash = simple_work()
-            else:
-                block_proof, computed_hash = hard_work()
-            end_mine = time.time()
+            try_to_mine_again = True
+            while try_to_mine_again:
+                print("-" * 150)
+                print(f'- There are {len(filtered)} pending transactions (for this chain:{main_chain.chain[0].hash})')
+                print(f'- Mining for the following {expected_time_per_block} seconds')
+                start_mine = time.time()
+                if not enable_ga:
+                    block_proof, computed_hash = simple_work()
+                else:
+                    block_proof, computed_hash = hard_work()
+                end_mine = time.time()
 
-            if main_chain.add_block(block_proof, computed_hash):
-                #  main_chain.consensus()
-                #  main_chain.announce_new_block(blockchain.last_block)
-                print(f"Block #{main_chain.last_block.index} was mined "
-                      f"with {len(main_chain.last_block.transactions)} transactions "
-                      f"with nonce={main_chain.last_block.nonce}")
-                try:
-                    for trx in filtered:
-                        add_comment(trx.id, 'Mined in block {} with nonce={}'.format(main_chain.last_block.index
-                                                                                     , main_chain.last_block.nonce))
-                        update_task(trx.id, trx.label_ids)
-                    print('This is a valid({}) chain with {} blocks'.format(main_chain.check_chain_validity(),
-                                                                            len(main_chain.chain)))
-                except Exception as error:
-                    print(f"Error in {main_chain.chain[0].hash}")
-            main_chain.current_target = main_chain.adjust_target(first=start_mine, last=end_mine
-                                                     , expected_time_per_block=expected_time_per_block)
-            save_chains(main_chain)
+                if main_chain.add_block(block_proof, computed_hash):
+                    #  main_chain.consensus()
+                    #  main_chain.announce_new_block(blockchain.last_block)
+                    print(f"Block #{main_chain.last_block.index} was mined "
+                          f"with {len(main_chain.last_block.transactions)} transactions "
+                          f"with nonce={main_chain.last_block.nonce}")
+                    try:
+                        for trx in filtered:
+                            add_comment(trx.id, 'Mined in block {} with nonce={}'.format(main_chain.last_block.index
+                                                                                         , main_chain.last_block.nonce))
+                            update_task(trx.id, trx.label_ids)
+                        print('This is a valid({}) chain with {} blocks'.format(main_chain.check_chain_validity(),
+                                                                                len(main_chain.chain)))
+                    except Exception as error:
+                        print(f"Error in {main_chain.chain[0].hash}")
+                    try_to_mine_again = False
+                main_chain.current_target = main_chain.adjust_target(first=start_mine, last=end_mine
+                                                         , expected_time_per_block=expected_time_per_block)
+        save_chains(main_chain)
         # print(get_chain(main_chain.chain))
 
 # export PYTHONPATH="${PYTHONPATH}:/Users/yg/Dropbox/Mac/Documents/GitHub/ygpy-blockchain/"
