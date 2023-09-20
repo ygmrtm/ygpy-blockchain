@@ -181,6 +181,16 @@ def update_task(task_id, label_ids):
         raise
 
 
+def close_task(task_id):
+    try:
+        api = get_todoist_api()
+        is_success = api.close_task(task_id=task_id)
+        return is_success
+    except Exception as error:
+        print(error)
+        raise
+
+
 def simple_work():
     return main_chain.mine(expected_time_per_block)
 
@@ -210,7 +220,8 @@ def hard_work():
             prev = phe.value + 1
             phe.value = phe.value if ind != how_many else phe.lower
             ind += 1
-            functions_array.append(pool.schedule(parallel_work, [copy.deepcopy(new_block), phe, main_chain, random.random() * 100]))
+            functions_array.append(
+                pool.schedule(parallel_work, [copy.deepcopy(new_block), phe, main_chain, random.random() * 100]))
         try:
             done, not_done = wait(functions_array, timeout=expected_time_per_block * 1.5, return_when=FIRST_COMPLETED)
             for f in done:
@@ -226,7 +237,7 @@ def hard_work():
 
 def parallel_work(block, phenotype, _main_chain, time_to_sleep):
     cadena = f'{phenotype.up_down.upper()} ' \
-             f'range[{phenotype.lower if phenotype.up_down == "down" else phenotype.value} to '\
+             f'range[{phenotype.lower if phenotype.up_down == "down" else phenotype.value} to ' \
              f'{phenotype.value if phenotype.up_down == "down" else "INFINITE"}]'
     _block_proof, _computed_hash = Blockchain.proof_of_work_alternate(block, phenotype)
     valid = _main_chain.is_valid_proof(_block_proof, _computed_hash)
@@ -241,10 +252,10 @@ def parallel_work(block, phenotype, _main_chain, time_to_sleep):
 if __name__ == "__main__":
     # upgrade_chain()
     multiprocessing.freeze_support()
-    limit_process_tasks = random.sample(range(10, 30), 1)[0]
-    current_version = 4
-    expected_time_per_block = 1 * 10 * 60  # (number of seconds expected between 2016 blocks) One Block
-    min_transactions_to_mine = 3
+    limit_process_tasks = random.sample(range(10, 40), 1)[0]
+    current_version = 5
+    expected_time_per_block = etpb = 1 * 10 * 60  # (number of seconds expected between 2016 blocks) One Block
+    min_transactions_to_mine = 2
 
     action, chain_hash, enable_ga = check_arguments(sys.argv[1:])
     chains = load_chains(action, chain_hash)
@@ -265,6 +276,7 @@ if __name__ == "__main__":
             print(f'- No enough transactions to be mined {main_chain.chain[0].hash}')
         else:
             try_to_mine_again = True
+            expected_time_per_block = etpb
             while try_to_mine_again:
                 print("-" * 150)
                 print(f'- There are {len(filtered)} pending transactions (for this chain:{main_chain.chain[0].hash})')
@@ -286,14 +298,20 @@ if __name__ == "__main__":
                         for trx in filtered:
                             add_comment(trx.id, 'Mined in block {} with nonce={}'.format(main_chain.last_block.index
                                                                                          , main_chain.last_block.nonce))
+                            # print("comments added, labels{}".format(trx.label_ids))
                             update_task(trx.id, trx.label_ids)
+                            close_task(trx.id)
+                            # print("updated")
                         print('This is a valid({}) chain with {} blocks'.format(main_chain.check_chain_validity(),
                                                                                 len(main_chain.chain)))
                     except Exception as error:
                         print(f"Error in {main_chain.chain[0].hash}")
+                        sys.exit()
                     try_to_mine_again = False
                 main_chain.current_target = main_chain.adjust_target(first=start_mine, last=end_mine
-                                                         , expected_time_per_block=expected_time_per_block)
+                                                                     , expected_time_per_block=expected_time_per_block)
+                expected_time_per_block = expected_time_per_block - 60 if expected_time_per_block > (
+                            60 * 3) else expected_time_per_block
         save_chains(main_chain)
         # print(get_chain(main_chain.chain))
 

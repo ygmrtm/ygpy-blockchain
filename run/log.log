@@ -1,0 +1,37 @@
+Action to perform is: load  proof of work with Genetic Algorithm
+Loading ../chains_by_genblock_hash/25ff42edc4b2123b6e31a1219451ece27417a201876cc31bbd0abbcbfbb08216.pickle
+Loading ../chains_by_genblock_hash/f9f287455c92eb330ec2ba3a41131a7ac6a26345f91796ba03fc169b38651422.pickle
+Loading ../chains_by_genblock_hash/02b204464a54c252b56b72ee7555e915841bb8aa8524fb5968673ba1a3040240.pickle
+Loading ../chains_by_genblock_hash/c00e75b41f5ecaf3f9290312be3457b7d538450668ae26608efe81c836dec0e4.pickle
+There are 31 pending transactions (whole universe)
+- No enough transactions to be mined 25ff42edc4b2123b6e31a1219451ece27417a201876cc31bbd0abbcbfbb08216
+Saving 25ff42edc4b2123b6e31a1219451ece27417a201876cc31bbd0abbcbfbb08216
+- No enough transactions to be mined f9f287455c92eb330ec2ba3a41131a7ac6a26345f91796ba03fc169b38651422
+Saving f9f287455c92eb330ec2ba3a41131a7ac6a26345f91796ba03fc169b38651422
+------------------------------------------------------------------------------------------------------------------------------------------------------
+- There are 10 pending transactions (for this chain:02b204464a54c252b56b72ee7555e915841bb8aa8524fb5968673ba1a3040240)
+- Mining for the following 600 seconds
+Difficulty=5
+0x00000186d31463744bf000000000000000000000000000000000000000000000
+Genetic Algorithm Running, waiting for 60.0 secs
+gen:53|range[0-562923752]|elapsed:60.03217267990112secs
+canceling
+canceling
+canceling
+canceling
+canceling
+canceling
+canceling
+canceling
+canceling
+canceling
+canceling
+Block #84 was mined with 10 transactions with nonce=79811194
+This is a valid(True) chain with 85 blocks
+520.0887260437012 secs w 0.8668145434061686 ratio
+adjusting target DOWN
+ FROM: 10536608481070473857370651664846927317195472683223733682092156131475456
+   TO: 9133285469568666250740471577191484480925068402183143417983698932334592
+Saving 02b204464a54c252b56b72ee7555e915841bb8aa8524fb5968673ba1a3040240
+- No enough transactions to be mined c00e75b41f5ecaf3f9290312be3457b7d538450668ae26608efe81c836dec0e4
+Saving c00e75b41f5ecaf3f9290312be3457b7d538450668ae26608efe81c836dec0e4

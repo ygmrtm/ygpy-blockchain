@@ -1,3 +1,5 @@
+import random
+
 try:
     import pickle
     import time
@@ -60,7 +62,7 @@ class Blockchain:
         ratio = actual / expected_time_per_block
 
         # 3. Limit the adjustment by a factor of 5 (to prevent massive changes from one target to the next)
-        ratio = 0.15 if ratio < 0.15 else 4 if ratio > 4 else ratio
+        ratio = 0.15 / random.randrange(1, 4, 1) if ratio < 0.15 else random.randrange(4, 7, 1) if ratio > 4 else ratio
         print(f'{actual} secs w {ratio} ratio')
         print('adjusting target {}'.format('DOWN' if ratio < 1 else 'UP'))
 

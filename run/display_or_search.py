@@ -29,6 +29,8 @@ def search(search_token):
                     finally:
                         if found:
                             transactions_found.append(json.dumps({"block": block['index'],
+                                                                  "version": block['version'],
+                                                                  "difficulty": block['difficulty'],
                                                                   "mined": str(
                                                                       datetime.datetime.fromtimestamp(block['time'])),
                                                                   "mimetype": transaction_json['meta']['mimeType'],
@@ -72,6 +74,8 @@ def display(bc_hash):
                                             , "concept": f'{transaction_json["generals"]["concept"]}'
                                             , "amount": f'{transaction_json["generals"]["amount"]}'
                                             , "block": f'{block.index}'
+                                            , "version": f'{block.version}'
+                                            , "difficulty": f'{block.difficulty}'
                                             , "mined": f'{str(datetime.datetime.fromtimestamp(block.time))}'
                                          })
                 except Exception as error:
@@ -84,6 +88,8 @@ def display(bc_hash):
                                                 , "DropBox_id": f'{transaction_json["meta"]["DropBox_id"]}'
                                                 , "originalFilename": f'{transaction_json["meta"]["originalFilename"]}'
                                                 , "block": f'{block.index}'
+                                                , "version": f'{block.version}'
+                                                , "difficulty": f'{block.difficulty}'
                                                 , "mined": f'{str(datetime.datetime.fromtimestamp(block.time))}'
                                              })
                     except Exception as error:
@@ -95,7 +101,7 @@ def display(bc_hash):
 
 if __name__ == "__main__":
     print("jeloworl")
-    # search('10Lvu4LuB0IuQOBgGwohwVZ-knvXfLV6q')
-    # display('c00e75b41f5ecaf3f9290312be3457b7d538450668ae26608efe81c836dec0e4') ## transacciones monetarias
-    display('25ff42edc4b2123b6e31a1219451ece27417a201876cc31bbd0abbcbfbb08216') ## transacciones de creaciones
+    # search('1tNIR8vPJi-MqCkB8FAiXA_e3LVzKq68f')
+    display('c00e75b41f5ecaf3f9290312be3457b7d538450668ae26608efe81c836dec0e4') ## transacciones monetarias
+    # display('25ff42edc4b2123b6e31a1219451ece27417a201876cc31bbd0abbcbfbb08216') ## transacciones de creaciones
     # display('02b204464a54c252b56b72ee7555e915841bb8aa8524fb5968673ba1a3040240') ## transacciones de archivos
